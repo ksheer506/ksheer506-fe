@@ -4,8 +4,12 @@ import React from 'react';
 import styled from 'styled-components';
 
 import products from '../../api/data/products.json';
+import { useRouter } from 'next/router';
+import { formatPrice } from '../../utilities';
 
 const ProductDetailPage: NextPage = () => {
+  const router = useRouter();
+  console.log(router.query.id);
   const product = products[0];
 
   return (
@@ -21,7 +25,7 @@ const ProductDetailPage: NextPage = () => {
       <Thumbnail src={product.thumbnail ? product.thumbnail : '/defaultThumbnail.jpg'} />
       <ProductInfoWrapper>
         <Name>{product.name}</Name>
-        <Price>{product.price}원</Price>
+        <Price>{formatPrice(product.price)}원</Price>
       </ProductInfoWrapper>
     </>
   );
