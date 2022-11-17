@@ -1,8 +1,8 @@
 import axios from 'axios';
-import { LoginPayload } from '../../types/user';
+import { LoginPayload, LoginResponse } from '../../types/user';
 
 export const login = async ({ id, password }: LoginPayload) => {
-  const { data } = await axios.post('/login', {
+  const { data } = await axios.post<LoginResponse>('/login', {
     id,
     password,
   });
