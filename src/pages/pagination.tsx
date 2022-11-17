@@ -10,15 +10,21 @@ import Pagination from '../components/Pagination';
 import { Nav } from '../components/Nav';
 
 const PaginationPage: NextPage = () => {
-  const router = useRouter();
-  const { page } = router.query;
+  const { query, push } = useRouter();
+  const { page } = query;
+  console.log(page);
+
+  const handlePagination = (current: number) => {
+    console.log(query);
+    push({ query: { ...query, page: current } });
+  };
 
   return (
     <>
       <Nav />
       <Container>
         <ProductList products={products.slice(0, 10)} />
-        <Pagination />
+        <Pagination initialPage={Number(page || 1)} lastPage={14} onClick={handlePagination} />
       </Container>
     </>
   );
