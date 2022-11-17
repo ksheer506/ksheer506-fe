@@ -2,8 +2,11 @@ import Link from 'next/link';
 import type { NextPage } from 'next';
 import React from 'react';
 import styled from 'styled-components';
+import { useQuery } from 'react-query';
 
 const HomePage: NextPage = () => {
+  const {data} = useQuery([])
+  
   return (
     <>
       <Header>
@@ -28,14 +31,14 @@ const HomePage: NextPage = () => {
 
 export default HomePage;
 
-const Header = styled.div`
+const Header = styled.header`
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 20px;
 `;
 
-const Title = styled.a`
+const Title = styled.h1`
   font-size: 48px;
 `;
 
