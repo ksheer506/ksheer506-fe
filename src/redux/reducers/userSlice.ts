@@ -8,8 +8,8 @@ interface UserInfosStore extends UserInfos {
 }
 
 export const initialUserInfos: UserInfosStore = {
-  id: '',
-  name: '',
+  ID: '',
+  NAME: '',
   accessToken: '',
 };
 
@@ -17,19 +17,20 @@ const usesrSlice = createSlice({
   name: 'user',
   initialState: initialUserInfos,
   reducers: {
-    getAccessToken: (state, { payload }: PayloadAction<string>) => {
-      state.accessToken = payload;
-    },
-    initializeUserInfos: (state, { payload }: PayloadAction<UserInfos>) => {
-      const { id, name } = payload;
+    initializeUserInfos: (state, { payload }: PayloadAction<UserInfosStore>) => {
+      const { accessToken, ID, NAME } = payload;
 
-      state.id = id;
-      state.name = name;
+      state.accessToken = accessToken;
+      state.ID = ID;
+      state.NAME = NAME;
+    },
+    logOutUser: () => {
+      return initialUserInfos;
     },
   },
 });
 
 export const selectUserInfos = (state: RootState) => state.user;
 
-export const { getAccessToken, initializeUserInfos } = usesrSlice.actions;
+export const { initializeUserInfos, logOutUser } = usesrSlice.actions;
 export const userReducer: Reducer<UserInfosStore> = usesrSlice.reducer;

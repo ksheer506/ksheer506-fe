@@ -4,8 +4,8 @@ export interface LoginPayload {
 }
 
 export interface UserInfos {
-  id: string;
-  name: string;
+  ID: string;
+  NAME: string;
 }
 
 export interface LoginResponse {
