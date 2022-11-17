@@ -2,11 +2,12 @@ import Link from 'next/link';
 import type { NextPage } from 'next';
 import React, { ChangeEvent, FormEvent, useRef, useState } from 'react';
 import styled, { css } from 'styled-components';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { useRouter } from 'next/router';
 import { useMutation } from 'react-query';
 import { login } from '../api';
-import { LoginPayload } from '../types/user';
+import { LoginPayload, LoginResponse } from '../types/user';
+import { initializeUserInfos, useAppDispatch } from '../redux';
 
 const validateID = (id: string) => {
   return id.match(/[A-z0-9]{5,30}/g);
@@ -18,11 +19,19 @@ const validatePW = (password: string) => {
 
 const LoginPage: NextPage = () => {
   const { replace } = useRouter();
-  const { mutate } = useMutation<any, unknown, LoginPayload>((payload) => login(payload), {
-    onSuccess: () => {
-      replace('/');
-    },
-  });
+  const dispatch = useAppDispatch();
+  const { mutate } = useMutation<{ data: LoginResponse }, unknown, LoginPayload>(
+    (payload) => login(payload),
+    {
+      onSuccess: ({ data }) => {
+        const { accessToken, user } = data.data;
+        const { ID, NAME } = user;
+
+        dispatch(initializeUserInfos({ accessToken, ID, NAME }));
+        replace('/');
+      },
+    }
+  );
 
   const idRef = useRef<HTMLInputElement>(null);
   const [idErr, setIDErr] = useState(false);
@@ -32,7 +41,7 @@ const LoginPage: NextPage = () => {
 
   const handleIDBlur = (e: ChangeEvent<HTMLInputElement>) => {
     const isValid = validateID(e.target.value);
-    console.log(isValid);
+
     if (!isValid) {
       setIDErr(true);
       return;
@@ -42,7 +51,7 @@ const LoginPage: NextPage = () => {
 
   const handlePWBlur = (e: ChangeEvent<HTMLInputElement>) => {
     const isValid = validatePW(e.target.value);
-    console.log(isValid);
+
     if (!isValid) {
       setPWErr(true);
       return;
@@ -151,6 +160,7 @@ const LoginButton = styled.button`
   border-radius: 12px;
   background-color: #222;
   color: #fff;
+  cursor: pointer;
 
   &:disabled {
     background-color: #e2e2ea;
