@@ -5,18 +5,12 @@ import styled from 'styled-components';
 
 import products from '../api/data/products.json';
 import ProductList from '../components/ProductList';
+import { Nav } from '../components/Nav';
 
 const InfiniteScrollPage: NextPage = () => {
   return (
     <>
-      <Header>
-        <Link href='/'>
-          <Title>HAUS</Title>
-        </Link>
-        <Link href='/login'>
-          <p>login</p>
-        </Link>
-      </Header>
+      <Nav />
       <Container>
         <ProductList products={products} />
       </Container>

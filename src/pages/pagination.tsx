@@ -7,6 +7,7 @@ import styled from 'styled-components';
 import products from '../api/data/products.json';
 import ProductList from '../components/ProductList';
 import Pagination from '../components/Pagination';
+import { Nav } from '../components/Nav';
 
 const PaginationPage: NextPage = () => {
   const router = useRouter();
@@ -14,14 +15,7 @@ const PaginationPage: NextPage = () => {
 
   return (
     <>
-      <Header>
-        <Link href='/'>
-          <Title>HAUS</Title>
-        </Link>
-        <Link href='/login'>
-          <p>login</p>
-        </Link>
-      </Header>
+      <Nav />
       <Container>
         <ProductList products={products.slice(0, 10)} />
         <Pagination />
