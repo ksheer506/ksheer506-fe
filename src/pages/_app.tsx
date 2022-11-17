@@ -1,23 +1,27 @@
 import type { AppProps } from 'next/app';
 import { QueryClient, QueryClientProvider } from 'react-query';
+import { Provider } from 'react-redux';
 import styled from 'styled-components';
 
 import setupMSW from '../api/setup';
+import { setupStore } from '../redux';
 import GlobalStyle from '../styles/GlobalStyle';
 
 setupMSW();
 
 const queryClient = new QueryClient();
-
+export const store = setupStore();
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <>
       <QueryClientProvider client={queryClient}>
-        <GlobalStyle />
-        <Background />
-        <Content>
-          <Component {...pageProps} />
-        </Content>
+        <Provider store={store}>
+          <GlobalStyle />
+          <Background />
+          <Content>
+            <Component {...pageProps} />
+          </Content>
+        </Provider>
       </QueryClientProvider>
     </>
   );
