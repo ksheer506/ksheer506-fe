@@ -7,7 +7,7 @@ export interface Product {
 
 export interface ProductListPayload {
   page: number;
-  size: number;
+  size?: number;
 }
 
 export interface ProductListResponse {
