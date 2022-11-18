@@ -1,20 +1,30 @@
 import axios from 'axios';
+import { ReactNode, useState } from 'react';
 import { useQuery } from 'react-query';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 
 import { Product } from '../types/product';
 import { formatPrice } from '../utilities';
 
 type ProductItemProps = {
   product: Product;
+  skeleton: ReactNode;
 };
 
-const ProductItem = ({ product: { name, thumbnail, price } }: ProductItemProps) => {
+const ProductItem = ({ product: { name, thumbnail, price }, skeleton }: ProductItemProps) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+
   return (
     <List>
-      <Thumbnail src={thumbnail ? thumbnail : '/defaultThumbnail.jpg'} />
-      <Name>{name}</Name>
-      <Price>{formatPrice(price)}원</Price>
+      {!imageLoaded && skeleton}
+      <Container isLoading={!imageLoaded}>
+        <Thumbnail
+          onLoad={() => setImageLoaded(true)}
+          src={thumbnail ? thumbnail : '/defaultThumbnail.jpg'}
+        />
+        <Name>{name}</Name>
+        <Price>{formatPrice(price)}원</Price>
+      </Container>
     </List>
   );
 };
@@ -23,8 +33,21 @@ export default ProductItem;
 
 const List = styled.li`
   width: 180px;
+  height: max-content;
   align-self: center;
   justify-self: center;
+`;
+
+const Container = styled.div<{ isLoading: boolean }>`
+  width: 100%;
+  height: max-content;
+  overflow: hidden;
+
+  ${({ isLoading }) =>
+    isLoading &&
+    css`
+      height: 0;
+    `}
 `;
 
 const Thumbnail = styled.img`
@@ -33,10 +56,15 @@ const Thumbnail = styled.img`
 `;
 
 const Name = styled.p`
-  margin-top: 8px;
+  height: 20px;
+  margin-top: 6px;
   font-size: 16px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 `;
 
 const Price = styled.p`
+  height: 20px;
   margin-top: 4px;
 `;
