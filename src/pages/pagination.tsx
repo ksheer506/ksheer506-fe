@@ -1,40 +1,89 @@
 import { useRouter } from 'next/router';
 import type { NextPage } from 'next';
-import React from 'react';
+import React, { useMemo, useRef } from 'react';
 import styled from 'styled-components';
 
-import products from '../api/data/products.json';
 import ProductList from '../components/ProductList';
 import Pagination from '../components/Pagination';
 import { Nav } from '../components/Nav';
 import { useQuery } from 'react-query';
+import { ErrorBoundary, FallbackProps, useErrorHandler } from 'react-error-boundary';
+import { queryProductList } from '../api/products/queryProductList';
+import { ProductItemSkeleton } from '../components';
 
 const PaginationPage: NextPage = () => {
+  const size = useRef(10);
   const { query, push } = useRouter();
   const { page } = query;
-  const { data } = useQuery(['productList', page]);
+  const { data, isFetching, isSuccess, isError } = useQuery(
+    ['productList', page],
+    () => queryProductList({ page: Number(page), size: size.current }),
+    {
+      enabled: !!page,
+      retry: 1,
+    }
+  );
+  const { products, totalCount } = data || {};
 
   const handlePagination = (current: number) => {
     push({ query: { ...query, page: current } });
   };
 
+  const lastPage = Math.ceil((totalCount || 0) / size.current);
+  const productSkelton = useMemo(
+    () => new Array(size.current).fill(0).map((_, i) => <ProductItemSkeleton key={i} />),
+    []
+  );
+  console.log(isError, products);
   return (
     <>
       <Nav />
-      <Container>
-        <ProductList products={products.slice(0, 10)} />
 
-        <Pagination currentPage={Number(page)} lastPage={13} onChange={handlePagination} />
-      </Container>
+      <Main>
+        {/* <ErrorBoundary FallbackComponent={PaginationError}> */}
+        {isError && <PaginationError />}
+        {isFetching && <SkeltonContainer>{productSkelton}</SkeltonContainer>}
+        {products && (
+          <>
+            <ProductList products={products} />
+            <Pagination
+              currentPage={Number(page)}
+              lastPage={lastPage}
+              onChange={handlePagination}
+            />
+          </>
+        )}
+        {/* </ErrorBoundary> */}
+      </Main>
     </>
   );
 };
 
+const PaginationError = () => {
+  return <ErrorContainer>존재하지 않는 페이지입니다.</ErrorContainer>;
+};
+
 export default PaginationPage;
 
-const Container = styled.div`
+const Main = styled.main`
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 0 20px 40px;
+`;
+
+const SkeltonContainer = styled.ul`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  width: 400px;
+  gap: 15px;
+`;
+
+const ErrorContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  min-height: calc(100vh - 100px);
 `;
