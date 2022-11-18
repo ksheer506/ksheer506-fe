@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 function generatePages(currentPage: number, lastPage: number, size: number): number[];
 function generatePages(currentPage: number, size: number): number[];
@@ -22,7 +22,18 @@ interface usePaginationProps {
 }
 
 export const usePagination = ({ currentPage, size, lastPage, onChange }: usePaginationProps) => {
+  const initialPage = useRef<number | undefined>(currentPage);
   const [pages, setPages] = useState<number[]>(generatePages(currentPage || 1, size));
+
+  // FIXME: pagination 클릭해서 들어온 후 다시 주소창 입력해서 페이지 전환할 경우 lastPage가 제대로 적용되지 않음
+  // 주소창에서 직접 페이지를 변경했을 때 해당 페이지가 표시되지 않는 문제 처리
+  useEffect(() => {
+    const { current } = initialPage;
+
+    if (current || !currentPage) return;
+    console.log('usePagination에서 currentPage', currentPage, initialPage);
+    setPages(generatePages(currentPage, size, lastPage));
+  }, [currentPage, lastPage, size]);
 
   const setPrev = () => {
     if (!currentPage) return;
