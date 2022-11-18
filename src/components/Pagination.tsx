@@ -2,19 +2,19 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { VscChevronLeft, VscChevronRight } from 'react-icons/vsc';
 
-const generatePages = (currentPage: number, lastPage: number, size: number) => {
+function generatePages(currentPage: number, lastPage: number, size: number): number[];
+function generatePages(currentPage: number, size: number): number[];
+
+function generatePages(currentPage: number, size: number, lastPage?: number) {
   const start = (Math.ceil(currentPage / size) - 1) * size + 1;
   const end = Math.ceil(currentPage / size) * size;
 
-  if (lastPage < start) {
-    return [];
-  }
-  if (end > lastPage) {
+  if (lastPage && end > lastPage) {
     return new Array(lastPage - start + 1).fill(0).map((_, i) => start + i);
   }
 
   return new Array(size).fill(0).map((_, i) => start + i);
-};
+}
 
 interface PaginationProps {
   currentPage?: number;
@@ -23,14 +23,14 @@ interface PaginationProps {
   size?: number;
 }
 const Pagination = ({ lastPage, onChange, currentPage, size = 5 }: PaginationProps) => {
-  const [pages, setPages] = useState<number[]>(generatePages(currentPage || 1, lastPage, size));
+  const [pages, setPages] = useState<number[]>(generatePages(currentPage || 1, size));
 
   const handlePrev = () => {
     if (!currentPage) return;
 
     const first = pages[0];
 
-    setPages(generatePages(first - size, first - 1, size));
+    setPages(generatePages(first - size, size, first - 1));
     onChange(first - 1);
   };
 
@@ -40,7 +40,7 @@ const Pagination = ({ lastPage, onChange, currentPage, size = 5 }: PaginationPro
     const last = pages[pages.length - 1];
     const lastIndex = last + size > lastPage ? lastPage : last + size;
 
-    setPages(generatePages(last + 1, lastIndex, size));
+    setPages(generatePages(last + 1, size, lastIndex));
     onChange(last + 1);
   };
 
