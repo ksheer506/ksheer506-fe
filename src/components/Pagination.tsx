@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { VscChevronLeft, VscChevronRight } from 'react-icons/vsc';
-import { useRouter } from 'next/router';
 
 const generatePages = (currentPage: number, lastPage: number, size: number) => {
   const start = (Math.ceil(currentPage / size) - 1) * size + 1;
   const end = Math.ceil(currentPage / size) * size;
 
+  if (lastPage < start) {
+    return [];
+  }
   if (end > lastPage) {
     return new Array(lastPage - start + 1).fill(0).map((_, i) => start + i);
   }
@@ -15,61 +17,55 @@ const generatePages = (currentPage: number, lastPage: number, size: number) => {
 };
 
 interface PaginationProps {
-  initialPage: number;
+  currentPage?: number;
   lastPage: number;
-  onClick(currentPage: number): void;
+  onChange(currentPage: number): void;
   size?: number;
 }
-const Pagination = ({ lastPage, onClick, initialPage, size = 5 }: PaginationProps) => {
-  console.log(initialPage);
-  const [current, setCurrent] = useState<number>(initialPage);
-  const [pages, setPages] = useState<number[]>(generatePages(initialPage, lastPage, size));
+const Pagination = ({ lastPage, onChange, currentPage, size = 5 }: PaginationProps) => {
+  const [pages, setPages] = useState<number[]>(generatePages(currentPage || 1, lastPage, size));
 
   const handlePrev = () => {
+    if (!currentPage) return;
+
     const first = pages[0];
 
-    if (current >= first && current > 1) {
-      setPages(generatePages(current - 1, lastPage, size));
-      setCurrent((prev) => prev - 1);
-
-      onClick(current - 1);
-    }
+    setPages(generatePages(first - size, first - 1, size));
+    onChange(first - 1);
   };
 
   const handleNext = () => {
+    if (!currentPage) return;
+
     const last = pages[pages.length - 1];
+    const lastIndex = last + size > lastPage ? lastPage : last + size;
 
-    if (current >= lastPage) return;
-    if (current >= last) {
-      setPages(generatePages(current + 1, lastPage, size));
-    }
-
-    setCurrent((prev) => prev + 1);
-    onClick(current + 1);
+    setPages(generatePages(last + 1, lastIndex, size));
+    onChange(last + 1);
   };
+
   const handlePageClick = (page: number) => {
-    setCurrent(page);
-    onClick(page);
+    onChange(page);
   };
 
   return (
     <Container>
-      <Button onClick={handlePrev} disabled={current <= 1}>
+      <Button onClick={handlePrev} disabled={!!currentPage && pages[0] <= 1}>
         <VscChevronLeft />
       </Button>
       <PageWrapper>
         {pages.map((page) => (
           <Page
             onClick={() => handlePageClick(page)}
-            selected={page === current}
-            disabled={page === current}
+            selected={page === currentPage}
+            disabled={page === currentPage}
             key={page}
           >
             {page}
           </Page>
         ))}
       </PageWrapper>
-      <Button onClick={handleNext} disabled={current >= lastPage}>
+      <Button onClick={handleNext} disabled={!!currentPage && pages[pages.length - 1] >= lastPage}>
         <VscChevronRight />
       </Button>
     </Container>
