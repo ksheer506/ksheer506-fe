@@ -1,3 +1,5 @@
+import axios from 'axios';
+import { useQuery } from 'react-query';
 import styled from 'styled-components';
 
 import { Product } from '../types/product';
@@ -7,20 +9,22 @@ type ProductItemProps = {
   product: Product;
 };
 
-const ProductItem = ({ product: { name, thumbnail, price } }: ProductItemProps) => (
-  <Container>
-    <Thumbnail src={thumbnail ? thumbnail : '/defaultThumbnail.jpg'} />
-    <Name>{name}</Name>
-    <Price>{formatPrice(price)}원</Price>
-  </Container>
-);
+const ProductItem = ({ product: { name, thumbnail, price } }: ProductItemProps) => {
+  return (
+    <List>
+      <Thumbnail src={thumbnail ? thumbnail : '/defaultThumbnail.jpg'} />
+      <Name>{name}</Name>
+      <Price>{formatPrice(price)}원</Price>
+    </List>
+  );
+};
 
 export default ProductItem;
 
-const Container = styled.a`
+const List = styled.li`
   width: 180px;
-  margin-left: 20px;
-  margin-top: 20px;
+  align-self: center;
+  justify-self: center;
 `;
 
 const Thumbnail = styled.img`
@@ -28,11 +32,11 @@ const Thumbnail = styled.img`
   height: 180px;
 `;
 
-const Name = styled.div`
+const Name = styled.p`
   margin-top: 8px;
   font-size: 16px;
 `;
 
-const Price = styled.div`
+const Price = styled.p`
   margin-top: 4px;
 `;
