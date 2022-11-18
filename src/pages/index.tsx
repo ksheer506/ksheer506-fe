@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import { useQuery } from 'react-query';
 import { selectUserInfos, useAppSelector } from '../redux';
 import { Nav } from '../components/Nav';
-import { fetchUserInfos } from '../api';
+import { queryUserInfos } from '../api';
 import { toast } from 'react-toastify';
 import { AxiosResponse } from 'axios';
 import { UserInfos, UserInfosResponse } from '../types';
@@ -14,7 +14,7 @@ type HomPageProps = Pick<UserInfos, 'NAME'>;
 
 const HomePage: NextPage<HomPageProps> = ({ NAME }) => {
   const { ID } = useAppSelector(selectUserInfos);
-  const { data } = useQuery<UserInfosResponse>(['user', ID], () => fetchUserInfos({ ID }), {
+  const { data } = useQuery<UserInfosResponse>(['user', ID], () => queryUserInfos({ ID }), {
     retry: 1,
     enabled: !!ID,
     onError: (err) => {
