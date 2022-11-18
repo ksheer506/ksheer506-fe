@@ -1,20 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { VscChevronLeft, VscChevronRight } from 'react-icons/vsc';
-
-function generatePages(currentPage: number, lastPage: number, size: number): number[];
-function generatePages(currentPage: number, size: number): number[];
-
-function generatePages(currentPage: number, size: number, lastPage?: number) {
-  const start = (Math.ceil(currentPage / size) - 1) * size + 1;
-  const end = Math.ceil(currentPage / size) * size;
-
-  if (lastPage && end > lastPage) {
-    return new Array(lastPage - start + 1).fill(0).map((_, i) => start + i);
-  }
-
-  return new Array(size).fill(0).map((_, i) => start + i);
-}
+import { usePagination } from '../hooks';
 
 interface PaginationProps {
   currentPage?: number;
@@ -23,40 +10,22 @@ interface PaginationProps {
   size?: number;
 }
 const Pagination = ({ lastPage, onChange, currentPage, size = 5 }: PaginationProps) => {
-  const [pages, setPages] = useState<number[]>(generatePages(currentPage || 1, size));
-
-  const handlePrev = () => {
-    if (!currentPage) return;
-
-    const first = pages[0];
-
-    setPages(generatePages(first - size, size, first - 1));
-    onChange(first - 1);
-  };
-
-  const handleNext = () => {
-    if (!currentPage) return;
-
-    const last = pages[pages.length - 1];
-    const lastIndex = last + size > lastPage ? lastPage : last + size;
-
-    setPages(generatePages(last + 1, size, lastIndex));
-    onChange(last + 1);
-  };
-
-  const handlePageClick = (page: number) => {
-    onChange(page);
-  };
+  const { pages, setPrev, setNext, setPage } = usePagination({
+    currentPage,
+    size,
+    lastPage,
+    onChange,
+  });
 
   return (
     <Container>
-      <Button onClick={handlePrev} disabled={!!currentPage && pages[0] <= 1}>
+      <Button onClick={setPrev} disabled={!!currentPage && pages[0] <= 1}>
         <VscChevronLeft />
       </Button>
       <PageWrapper>
         {pages.map((page) => (
           <Page
-            onClick={() => handlePageClick(page)}
+            onClick={() => setPage(page)}
             selected={page === currentPage}
             disabled={page === currentPage}
             key={page}
@@ -65,7 +34,7 @@ const Pagination = ({ lastPage, onChange, currentPage, size = 5 }: PaginationPro
           </Page>
         ))}
       </PageWrapper>
-      <Button onClick={handleNext} disabled={!!currentPage && pages[pages.length - 1] >= lastPage}>
+      <Button onClick={setNext} disabled={!!currentPage && pages[pages.length - 1] >= lastPage}>
         <VscChevronRight />
       </Button>
     </Container>
