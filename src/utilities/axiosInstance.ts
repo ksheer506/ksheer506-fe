@@ -1,6 +1,6 @@
 import axios from 'axios';
 
 export const axiosInstance = axios.create({
-  baseURL: 'http://localhost:3003', // 서버 url
+  baseURL: 'http://localhost:3000',
   timeout: 5000,
 });
