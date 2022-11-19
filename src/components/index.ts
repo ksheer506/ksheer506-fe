@@ -1,3 +1,4 @@
+export { ProductDetailSkeleton } from './ProductDetailSkeleton';
 export { ProductItemSkeleton } from './ProductItemSkeleton';
 export { Nav } from './Nav';
 export { default as Pagination } from './Pagination';
