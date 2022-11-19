@@ -1,5 +1,4 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import Link from 'next/link';
 import type { NextPage } from 'next';
 import React, { useCallback, useRef } from 'react';
 import styled from 'styled-components';
@@ -8,10 +7,11 @@ import ProductList from '../components/ProductList';
 import { Nav } from '../components/Nav';
 import { useInfiniteQuery } from 'react-query';
 import { queryProductList } from '../api/products/queryProductList';
-import { useInfiniteScroll } from '../hooks';
+import { useInfiniteScroll, useScrollRestoration } from '../hooks';
 
 const InfiniteScrollPage: NextPage = () => {
-  const size = useRef(10);
+  const size = useRef(16);
+  const { recordScrollY } = useScrollRestoration('infiniteScroll');
   const { data, fetchNextPage, hasNextPage } = useInfiniteQuery(
     ['productList'],
     ({ pageParam = 1 }) => queryProductList({ page: pageParam, size: size.current }),
@@ -36,10 +36,12 @@ const InfiniteScrollPage: NextPage = () => {
 
   const onIntersecting = useCallback(() => {
     if (!hasNextPage) return;
+
     fetchNextPage();
   }, [hasNextPage]);
-  const { enabled, bottomRef, initializer } = useInfiniteScroll({
+  const { enabled, bottomRef, initialize } = useInfiniteScroll({
     onIntersecting,
+    initializeOnMount: false,
   });
 
   const { pages } = data || {};
@@ -47,12 +49,15 @@ const InfiniteScrollPage: NextPage = () => {
   return (
     <>
       <Nav />
-      <Container>
+      <Container onClick={recordScrollY}>
         {pages && <ProductList products={pages} />}
         {enabled && <div ref={bottomRef} />}
-        <Button onClick={initializer} disabled={!hasNextPage}>
-          더보기
-        </Button>
+
+        <ButtonContainer>
+          <Button onClick={initialize} disabled={!hasNextPage}>
+            더보기
+          </Button>
+        </ButtonContainer>
       </Container>
     </>
   );
@@ -60,11 +65,21 @@ const InfiniteScrollPage: NextPage = () => {
 
 export default InfiniteScrollPage;
 
-const Container = styled.div`
+const Container = styled.section`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 20px 40px;
+  padding: 0 20px;
+  width: max-content;
+`;
+
+const ButtonContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 0px;
+  margin: 30px 0px;
+  width: 100%;
 `;
 
 const Button = styled.button`
