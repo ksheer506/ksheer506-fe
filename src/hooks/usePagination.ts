@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-function generatePages(currentPage: number, lastPage: number, size: number): number[];
+function generatePages(currentPage: number, size: number, lastPage: number): number[];
 function generatePages(currentPage: number, size: number): number[];
 
 function generatePages(currentPage: number, size: number, lastPage?: number) {
@@ -31,7 +31,7 @@ export const usePagination = ({ currentPage, size, lastPage, onChange }: usePagi
     const { current } = initialPage;
 
     if (current || !currentPage) return;
-    console.log('usePagination에서 currentPage', currentPage, initialPage);
+    
     setPages(generatePages(currentPage, size, lastPage));
   }, [currentPage, lastPage, size]);
 

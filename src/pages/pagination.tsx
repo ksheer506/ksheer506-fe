@@ -16,7 +16,7 @@ const PaginationPage: NextPage = () => {
   const size = useRef(10);
   const { query, push } = useRouter();
   const { page } = query;
-  const { data, isFetching, isSuccess, isError } = useQuery(
+  const { data, isFetching, isError } = useQuery(
     ['productList', page],
     () => queryProductList({ page: Number(page), size: size.current }),
     {

@@ -2,7 +2,6 @@ import styled from 'styled-components';
 
 import { Product } from '../types/product';
 import ProductItem from './ProductItem';
-import { ProductItemSkeleton } from './ProductItemSkeleton';
 
 type ProductListProps = {
   products: Product[];

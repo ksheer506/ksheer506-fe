@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import { Rectangle, Skeleton } from './Skeleton/Skeleton';
 
 export const ProductItemSkeleton = memo(() => (
-  <Skeleton width='180px' height='230px'>
+    <Skeleton width='180px' height='230px'>
     <Container>
       <Rectangle width='100%' height='180px' />
       <Rectangle width='100%' height='20px' />
