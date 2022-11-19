@@ -67,7 +67,7 @@ const Background = styled.div`
 `;
 
 const Content = styled.div`
-  width: 420px;
+  width: 440px;
   min-height: 100%;
   margin: 0 auto;
   background-color: #fff;
