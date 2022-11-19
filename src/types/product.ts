@@ -23,6 +23,6 @@ export interface ProductItemPayload {
 
 export interface ProductItemResponse {
   data: {
-    product: Product[];
+    product: Product;
   };
 }
