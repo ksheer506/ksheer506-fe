@@ -1,8 +1,10 @@
+/* eslint-disable react/display-name */
+import { memo } from 'react';
 import styled from 'styled-components';
 
 import { Rectangle, Skeleton } from './Skeleton/Skeleton';
 
-export const ProductItemSkeleton = () => (
+export const ProductItemSkeleton = memo(() => (
   <Skeleton width='180px' height='230px'>
     <Container>
       <Rectangle width='100%' height='180px' />
@@ -10,7 +12,7 @@ export const ProductItemSkeleton = () => (
       <Rectangle width='45%' height='20px' />
     </Container>
   </Skeleton>
-);
+));
 
 const Container = styled.div`
   display: flex;

@@ -1,22 +1,22 @@
+/* eslint-disable react/display-name */
 import axios from 'axios';
-import { ReactNode, useState } from 'react';
-import { useQuery } from 'react-query';
+import { memo, useState } from 'react';
 import styled, { css } from 'styled-components';
 
 import { Product } from '../types/product';
 import { formatPrice } from '../utilities';
+import { ProductItemSkeleton } from './ProductItemSkeleton';
 
 type ProductItemProps = {
   product: Product;
-  skeleton: ReactNode;
 };
 
-const ProductItem = ({ product: { name, thumbnail, price }, skeleton }: ProductItemProps) => {
+const ProductItem = memo(({ product: { name, thumbnail, price } }: ProductItemProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   return (
     <List>
-      {!imageLoaded && skeleton}
+      {!imageLoaded && <ProductItemSkeleton />}
       <Container isLoading={!imageLoaded}>
         <Thumbnail
           onLoad={() => setImageLoaded(true)}
@@ -27,7 +27,7 @@ const ProductItem = ({ product: { name, thumbnail, price }, skeleton }: ProductI
       </Container>
     </List>
   );
-};
+});
 
 export default ProductItem;
 

@@ -11,7 +11,7 @@ type ProductListProps = {
 const ProductList = ({ products }: ProductListProps) => (
   <UList>
     {products.map((product) => (
-      <ProductItem product={product} skeleton={<ProductItemSkeleton />} key={product.id} />
+      <ProductItem product={product} key={product.id} />
     ))}
   </UList>
 );
