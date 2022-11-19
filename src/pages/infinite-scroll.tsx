@@ -38,7 +38,9 @@ const InfiniteScrollPage: NextPage = () => {
     if (!hasNextPage) return;
     fetchNextPage();
   }, [hasNextPage]);
-  const { enabled, bottomRef, initializer } = useInfiniteScroll(onIntersecting);
+  const { enabled, bottomRef, initializer } = useInfiniteScroll({
+    onIntersecting,
+  });
 
   const { pages } = data || {};
 
