@@ -1,47 +1,74 @@
-import Link from 'next/link';
-import type { NextPage } from 'next';
-import React from 'react';
-import styled from 'styled-components';
+import type { GetStaticProps, GetStaticPropsContext, NextPage } from 'next';
+import React, { useState } from 'react';
+import styled, { css } from 'styled-components';
 
-import products from '../../api/data/products.json';
 import { useRouter } from 'next/router';
 import { formatPrice } from '../../utilities';
+import { queryProductDetail } from '../../api/products/queryProductDetail';
+import { useQuery } from 'react-query';
+import { Nav, ProductDetailSkeleton } from '../../components';
 
 const ProductDetailPage: NextPage = () => {
-  const router = useRouter();
-  console.log(router.query.id);
-  const product = products[0];
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const { query } = useRouter();
+  const { id } = query;
+  const { data } = useQuery(['product', id], () => queryProductDetail({ id: Number(id) }), {
+    enabled: !!id,
+    select: ({ product }) => product,
+  });
+  const { name, thumbnail, price } = data || {};
+
+  console.log(data);
 
   return (
     <>
-      <Header>
-        <Link href='/'>
-          <Title>HAUS</Title>
-        </Link>
-        <Link href='/login'>
-          <p>login</p>
-        </Link>
-      </Header>
-      <Thumbnail src={product.thumbnail ? product.thumbnail : '/defaultThumbnail.jpg'} />
-      <ProductInfoWrapper>
-        <Name>{product.name}</Name>
-        <Price>{formatPrice(product.price)}원</Price>
-      </ProductInfoWrapper>
+      <Nav />
+      {!imageLoaded && <ProductDetailSkeleton />}
+      <Container isLoading={!imageLoaded}>
+        <Thumbnail
+          src={thumbnail ? thumbnail : '/defaultThumbnail.jpg'}
+          onLoad={async () => {
+            await new Promise((res) => {
+              setTimeout(res, 2000);
+            });
+            setImageLoaded(true);
+          }}
+        />
+        <ProductInfoWrapper>
+          <Name>{name}</Name>
+          <Price>{formatPrice(price || 0)}원</Price>
+        </ProductInfoWrapper>
+      </Container>
     </>
   );
 };
 
+/* export const getStaticPaths = async () => {
+  const {} = await queryProductList;
+};
+
+export const getStaticProps: GetStaticProps<any, { id: string }> = async (context) => {
+  const { product } = await queryProductDetail({ id: 10 });
+
+  if (!product) {
+    return { notFound: true };
+  }
+
+  return { props: product };
+}; */
+
 export default ProductDetailPage;
 
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-`;
+const Container = styled.div<{ isLoading: boolean }>`
+  width: 100%;
+  height: max-content;
+  overflow: hidden;
 
-const Title = styled.a`
-  font-size: 48px;
+  ${({ isLoading }) =>
+    isLoading &&
+    css`
+      height: 0;
+    `}
 `;
 
 const Thumbnail = styled.img`
