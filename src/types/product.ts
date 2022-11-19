@@ -16,3 +16,13 @@ export interface ProductListResponse {
     totalCount: number;
   };
 }
+
+export interface ProductItemPayload {
+  id: number;
+}
+
+export interface ProductItemResponse {
+  data: {
+    product: Product[];
+  };
+}
