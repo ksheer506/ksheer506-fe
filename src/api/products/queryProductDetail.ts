@@ -1,10 +1,10 @@
-import { ProductItemPayload, ProductListResponse } from '../../types';
+import { ProductItemPayload, ProductItemResponse } from '../../types';
 import { axiosInstance } from '../../utilities';
 
 export const queryProductDetail = async ({ id }: ProductItemPayload) => {
   const {
     data: { data },
-  } = await axiosInstance.get<ProductListResponse>(`/products/${id}`);
+  } = await axiosInstance.get<ProductItemResponse>(`/products/${id}`);
 
   return { ...data };
 };
