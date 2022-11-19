@@ -1,6 +1,7 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useRouter } from 'next/router';
 import type { NextPage } from 'next';
-import React, { useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import styled from 'styled-components';
 
 import ProductList from '../components/ProductList';
@@ -25,16 +26,16 @@ const PaginationPage: NextPage = () => {
   );
   const { products, totalCount } = data || {};
 
-  const handlePagination = (current: number) => {
+  const handlePagination = useCallback((current: number) => {
     push({ query: { ...query, page: current } });
-  };
+  }, []);
 
   const lastPage = Math.ceil((totalCount || 0) / size.current);
   const productSkelton = useMemo(
     () => new Array(size.current).fill(0).map((_, i) => <ProductItemSkeleton key={i} />),
     []
   );
-  console.log(isError, products);
+
   return (
     <>
       <Nav />
