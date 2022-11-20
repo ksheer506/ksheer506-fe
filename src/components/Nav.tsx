@@ -2,7 +2,7 @@ import Link from 'next/link';
 import styled from 'styled-components';
 import { logOutUser, selectUserInfos, useAppDispatch, useAppSelector } from '../redux';
 
-export const Nav = (/* { NAME }: Pick<UserInfos, 'NAME'> */) => {
+export const Nav = () => {
   const { NAME } = useAppSelector(selectUserInfos);
   const dispatch = useAppDispatch();
 
@@ -13,7 +13,9 @@ export const Nav = (/* { NAME }: Pick<UserInfos, 'NAME'> */) => {
   return (
     <Header>
       <Link href='/'>
-        <Title>HAUS</Title>
+        <a>
+          <Title>HAUS</Title>
+        </a>
       </Link>
       {!!NAME ? (
         <UserBox>

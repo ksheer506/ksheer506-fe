@@ -24,7 +24,7 @@ const HomePage: NextPage<HomPageProps> = ({ NAME }) => {
 
   return (
     <>
-      <Nav NAME={NAME} />
+      <Nav />
       <Container>
         <Link href='/pagination?page=1'>
           <StyledLink>pagination</StyledLink>
