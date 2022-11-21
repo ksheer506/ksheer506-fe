@@ -16,6 +16,7 @@ const InfiniteScrollPage: NextPage = () => {
     ['productList'],
     ({ pageParam = 1 }) => queryProductList({ page: pageParam, size: size.current }),
     {
+      refetchOnWindowFocus: false,
       getNextPageParam: ({ totalCount }, allPages) => {
         const fetchedItems = allPages.length * size.current;
         let nextPage: number | undefined = allPages.length + 1;

@@ -12,44 +12,58 @@ import { Product, ProductItemResponse, ProductListResponse } from '../../types';
 import productList from '../../api/data/products.json';
 import axios from 'axios';
 
-interface ProductDetailPageProps {
-  product: Product;
-}
+const queryStatus = (isIdle: boolean, isFetching: boolean, data: unknown) => {
+  if (!isIdle && !isFetching && !data) {
+    return 'notFound';
+  }
+  if ((isIdle || isFetching) && !data) {
+    return 'loading';
+  }
+  if (data) {
+    return 'done';
+  }
+};
 
-const ProductDetailPage: NextPage<ProductDetailPageProps> = ({ product }) => {
-  const { thumbnail, name, price } = product || {};
-  /* const [imageLoaded, setImageLoaded] = useState(false); */
-  /* const { query } = useRouter();
+const ProductDetailPage: NextPage = () => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const { query } = useRouter();
   const { id } = query;
-  const { data } = useQuery(['product', id], () => queryProductDetail({ id: Number(id) }), {
-    enabled: !!id,
-    select: ({ product }) => product,
-  });
+  const { data, isFetching, isIdle } = useQuery(
+    ['product', id],
+    () => queryProductDetail({ id: Number(id) }),
+    {
+      enabled: !!id,
+      retry: 1,
+      select: ({ product }) => product,
+    }
+  );
   const { name, thumbnail, price } = data || {};
-
-  console.log(data); */
-
-  const formatted = `${formatPrice(price || 0)}원`;
+  const status = queryStatus(isIdle, isFetching, name);
 
   return (
     <>
       <Nav />
-      {name ? (
+      {status === 'notFound' && <Error>존재하지 않는 상품입니다.</Error>}
+      {status === 'loading' && <ProductDetailSkeleton />}
+      {status === 'done' && (
         <>
-          <Thumbnail src={thumbnail ? thumbnail : '/defaultThumbnail.jpg'} />
-          <ProductInfoWrapper>
-            <Name>{name}</Name>
-            <Price>{formatted}</Price>
-          </ProductInfoWrapper>
+          <Container isLoading={!imageLoaded}>
+            <Thumbnail
+              src={thumbnail ? thumbnail : '/defaultThumbnail.jpg'}
+              onLoad={() => setImageLoaded(true)}
+            />
+            <ProductInfoWrapper>
+              <Name>{name}</Name>
+              <Price>{`${formatPrice(price || 0)}원`}</Price>
+            </ProductInfoWrapper>
+          </Container>
         </>
-      ) : (
-        <Error>존재하지 않는 상품입니다.</Error>
       )}
     </>
   );
 };
 
-export const getStaticPaths: GetStaticPaths = async () => {
+/* export const getStaticPaths: GetStaticPaths = async () => {
   const allProducts: Product[] = [];
 
   for (let page = 1; page < 5; page++) {
@@ -73,10 +87,6 @@ export const getStaticProps: GetStaticProps<any, { id: string }> = async ({ para
   const {
     data: { data },
   } = await axios.get<ProductItemResponse>(`http://localhost:3004/products/${productId}`);
-  console.log(data);
-  //const { totalCount, products } = data;
-
-  /* const { product } = await queryProductDetail({ id: productId }); */
   const product = productList.filter(({ id }) => id === productId)[0];
 
   if (!product) {
@@ -84,7 +94,7 @@ export const getStaticProps: GetStaticProps<any, { id: string }> = async ({ para
   }
 
   return { props: { product } };
-};
+}; */
 
 export default ProductDetailPage;
 
