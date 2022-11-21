@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { NextPage } from 'next';
-import React, { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react';
+import React, { FormEvent, useEffect } from 'react';
 import styled from 'styled-components';
 import { AxiosError } from 'axios';
 import { useRouter } from 'next/router';
