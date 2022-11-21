@@ -19,6 +19,11 @@ npm run dev
 라이브 서버를 켜고 개발을 시작합니다.  
 <br/>
 
-## 2. 기타 구현 사항
-1. ProductList, ProductItem 로딩 중 Skeleton 표시
+## 2. 기타 참고 사항
+- 라이브 서버의 주소가 http://localhost:3000 이 아닐 경우, `src/utilities/axiosInstance.ts` 파일의 baseURL을 수정해줍니다.
+
+<br/>
+
+## 3. 기타 구현 사항
+**1. ProductList, ProductItem 로딩 중 Skeleton 표시**  
 ProductList, ProductItem의 이미지가 모두 불러와질 때까지 Skeleton을 표시하도록 해 사용자 경험 향상
