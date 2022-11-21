@@ -1,15 +1,17 @@
 import Link from 'next/link';
 import type { NextPage } from 'next';
-import React, { ChangeEvent, FormEvent, useRef, useState } from 'react';
+import React, { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { AxiosError } from 'axios';
 import { useRouter } from 'next/router';
 import { useMutation } from 'react-query';
 import { login } from '../api';
 import { LoginPayload, LoginResponse } from '../types/user';
-import { initializeUserInfos, useAppDispatch } from '../redux';
+import { initializeUserInfos, selectUserInfos, useAppDispatch, useAppSelector } from '../redux';
 import { Input } from '../components/Input';
 import { useFormValidation } from '../hooks';
+import { toast } from 'react-toastify';
+import { ErrorResponse } from '../types';
 
 const validateID = (id: string) => {
   return !!id.match(/[A-z0-9]{5,30}/g);
@@ -22,9 +24,10 @@ const validatePW = (password: string) => {
 const LoginPage: NextPage = () => {
   const { replace } = useRouter();
   const dispatch = useAppDispatch();
-  const { mutate } = useMutation<
+  const { ID } = useAppSelector(selectUserInfos);
+  const { mutate, isIdle } = useMutation<
     { data: LoginResponse },
-    AxiosError<{ data: { error: { message: string } } }>,
+    AxiosError<ErrorResponse>,
     LoginPayload
   >((payload) => login(payload), {
     onSuccess: ({ data }) => {
@@ -38,6 +41,7 @@ const LoginPage: NextPage = () => {
       const { data } = response || {};
 
       if (data?.data.error.message) {
+        toast.error('아이디와 비밀번호를 확인해주세요.');
       }
     },
   });
@@ -52,12 +56,18 @@ const LoginPage: NextPage = () => {
     const password = pwRef.current?.value;
 
     if (!id || !password) return;
-
     mutate({
       id,
       password,
     });
   };
+
+  useEffect(() => {
+    if (!ID || !isIdle) return;
+
+    toast.info('이미 로그인이 되어있습니다.');
+    replace('/');
+  }, [ID, isIdle]);
 
   return (
     <>
