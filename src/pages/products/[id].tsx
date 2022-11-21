@@ -1,4 +1,4 @@
-import type { GetStaticProps, GetStaticPropsContext, NextPage } from 'next';
+import type { GetStaticPaths, GetStaticProps, GetStaticPropsContext, NextPage } from 'next';
 import React, { useState } from 'react';
 import styled, { css } from 'styled-components';
 
@@ -7,10 +7,19 @@ import { formatPrice } from '../../utilities';
 import { queryProductDetail } from '../../api/products/queryProductDetail';
 import { useQuery } from 'react-query';
 import { Nav, ProductDetailSkeleton } from '../../components';
+import { queryProductList } from '../../api/products/queryProductList';
+import { Product, ProductItemResponse, ProductListResponse } from '../../types';
+import productList from '../../api/data/products.json';
+import axios from 'axios';
 
-const ProductDetailPage: NextPage = () => {
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const { query } = useRouter();
+interface ProductDetailPageProps {
+  product: Product;
+}
+
+const ProductDetailPage: NextPage<ProductDetailPageProps> = ({ product }) => {
+  const { thumbnail, name, price } = product || {};
+  /* const [imageLoaded, setImageLoaded] = useState(false); */
+  /* const { query } = useRouter();
   const { id } = query;
   const { data } = useQuery(['product', id], () => queryProductDetail({ id: Number(id) }), {
     enabled: !!id,
@@ -18,44 +27,64 @@ const ProductDetailPage: NextPage = () => {
   });
   const { name, thumbnail, price } = data || {};
 
-  console.log(data);
+  console.log(data); */
+
+  const formatted = `${formatPrice(price || 0)}원`;
 
   return (
     <>
       <Nav />
-      {!imageLoaded && <ProductDetailSkeleton />}
-      <Container isLoading={!imageLoaded}>
-        <Thumbnail
-          src={thumbnail ? thumbnail : '/defaultThumbnail.jpg'}
-          onLoad={async () => {
-            await new Promise((res) => {
-              setTimeout(res, 2000);
-            });
-            setImageLoaded(true);
-          }}
-        />
-        <ProductInfoWrapper>
-          <Name>{name}</Name>
-          <Price>{formatPrice(price || 0)}원</Price>
-        </ProductInfoWrapper>
-      </Container>
+      {name ? (
+        <>
+          <Thumbnail src={thumbnail ? thumbnail : '/defaultThumbnail.jpg'} />
+          <ProductInfoWrapper>
+            <Name>{name}</Name>
+            <Price>{formatted}</Price>
+          </ProductInfoWrapper>
+        </>
+      ) : (
+        <Error>존재하지 않는 상품입니다.</Error>
+      )}
     </>
   );
 };
 
-/* export const getStaticPaths = async () => {
-  const {} = await queryProductList;
+export const getStaticPaths: GetStaticPaths = async () => {
+  const allProducts: Product[] = [];
+
+  for (let page = 1; page < 5; page++) {
+    const {
+      data: { data },
+    } = await axios.get<ProductListResponse>(
+      `http://localhost:3004/products?_page=${page}&_limit=${100}`
+    );
+    const { totalCount, products } = data;
+
+    if (!products.length) break;
+    allProducts.push(...products);
+  }
+  const paths = allProducts.map(({ id }) => ({ params: { id } }));
+
+  return { paths, fallback: true };
 };
 
-export const getStaticProps: GetStaticProps<any, { id: string }> = async (context) => {
-  const { product } = await queryProductDetail({ id: 10 });
+export const getStaticProps: GetStaticProps<any, { id: string }> = async ({ params }) => {
+  const { id: productId } = params || {};
+  const {
+    data: { data },
+  } = await axios.get<ProductItemResponse>(`http://localhost:3004/products/${productId}`);
+  console.log(data);
+  //const { totalCount, products } = data;
+
+  /* const { product } = await queryProductDetail({ id: productId }); */
+  const product = productList.filter(({ id }) => id === productId)[0];
 
   if (!product) {
-    return { notFound: true };
+    return { props: { product: {} } };
   }
 
-  return { props: product };
-}; */
+  return { props: { product } };
+};
 
 export default ProductDetailPage;
 
@@ -76,17 +105,25 @@ const Thumbnail = styled.img`
   height: 420px;
 `;
 
-const ProductInfoWrapper = styled.div`
+const ProductInfoWrapper = styled.section`
   margin-top: 20px;
   padding: 0 20px;
 `;
 
-const Name = styled.div`
+const Name = styled.h1`
   font-size: 20px;
   font-weight: bold;
 `;
 
-const Price = styled.div`
+const Price = styled.p`
   font-size: 18px;
   margin-top: 8px;
+`;
+
+const Error = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: calc(100vh - 95px);
 `;
