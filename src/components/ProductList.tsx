@@ -8,18 +8,18 @@ type ProductListProps = {
 };
 
 const ProductList = ({ products }: ProductListProps) => (
-  <Container>
+  <UList>
     {products.map((product) => (
-      <ProductItem key={product.id} product={product} />
+      <ProductItem product={product} key={product.id} />
     ))}
-  </Container>
+  </UList>
 );
 
 export default ProductList;
 
-const Container = styled.div`
-  display: flex;
-  flex-wrap: wrap;
+const UList = styled.ul`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   width: 400px;
-  margin-left: -20px;
+  gap: 15px;
 `;

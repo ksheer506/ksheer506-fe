@@ -1,9 +1,74 @@
 import Link from 'next/link';
 import type { NextPage } from 'next';
-import React from 'react';
+import React, { FormEvent, useEffect } from 'react';
 import styled from 'styled-components';
+import { AxiosError } from 'axios';
+import { useRouter } from 'next/router';
+import { useMutation } from 'react-query';
+import { login } from '../api';
+import { LoginPayload, LoginResponse } from '../types/user';
+import { initializeUserInfos, selectUserInfos, useAppDispatch, useAppSelector } from '../redux';
+import { Input } from '../components/Input';
+import { useFormValidation } from '../hooks';
+import { toast } from 'react-toastify';
+import { ErrorResponse } from '../types';
+
+const validateID = (id: string) => {
+  return !!id.match(/[A-z0-9]{5,30}/g);
+};
+
+const validatePW = (password: string) => {
+  return !!password.match(/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,30}$/g);
+};
 
 const LoginPage: NextPage = () => {
+  const { replace } = useRouter();
+  const dispatch = useAppDispatch();
+  const { ID } = useAppSelector(selectUserInfos);
+  const { mutate, isIdle } = useMutation<
+    { data: LoginResponse },
+    AxiosError<ErrorResponse>,
+    LoginPayload
+  >((payload) => login(payload), {
+    onSuccess: ({ data }) => {
+      const { accessToken, user } = data.data;
+      const { ID, NAME } = user;
+
+      dispatch(initializeUserInfos({ accessToken, ID, NAME }));
+      replace('/');
+    },
+    onError: ({ response }) => {
+      const { data } = response || {};
+
+      if (data?.data.error.message) {
+        toast.error('아이디와 비밀번호를 확인해주세요.');
+      }
+    },
+  });
+
+  const [idRef, idErr, handleIDBlur] = useFormValidation(validateID);
+  const [pwRef, pwErr, handlePWBlur] = useFormValidation(validatePW);
+
+  const handleLogin = async (e: FormEvent) => {
+    e.preventDefault();
+
+    const id = idRef.current?.value;
+    const password = pwRef.current?.value;
+
+    if (!id || !password) return;
+    mutate({
+      id,
+      password,
+    });
+  };
+
+  useEffect(() => {
+    if (!ID || !isIdle) return;
+
+    toast.info('이미 로그인이 되어있습니다.');
+    replace('/');
+  }, [ID, isIdle]);
+
   return (
     <>
       <Header>
@@ -14,12 +79,23 @@ const LoginPage: NextPage = () => {
           <p>login</p>
         </Link>
       </Header>
-      <Form>
-        <div>아이디</div>
-        <TextInput type='text' />
-        <div>비밀번호</div>
-        <TextInput type='password' />
-        <LoginButton disabled>로그인</LoginButton>
+      <Form onSubmit={handleLogin}>
+        <Input
+          label='아이디'
+          error={idErr}
+          errMsg='올바른 아이디 형식으로 입력해주세요.'
+          onBlur={handleIDBlur}
+          ref={idRef}
+        />
+        <Input
+          label='비밀번호'
+          type='password'
+          error={pwErr}
+          errMsg='올바른 비밀번호 형식으로 입력해주세요.'
+          onBlur={handlePWBlur}
+          ref={pwRef}
+        />
+        <LoginButton disabled={idErr || pwErr}>로그인</LoginButton>
       </Form>
     </>
   );
@@ -27,26 +103,23 @@ const LoginPage: NextPage = () => {
 
 export default LoginPage;
 
-const Header = styled.div`
+const Header = styled.header`
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 20px;
 `;
 
-const Title = styled.a`
+const Title = styled.h1`
   font-size: 48px;
 `;
 
-const Form = styled.div`
+const Form = styled.form`
   display: flex;
   flex-direction: column;
   margin-top: 40px;
   padding: 0 20px 40px;
-`;
-
-const TextInput = styled.input`
-  border: 1px solid #000;
+  gap: 16px;
 `;
 
 const LoginButton = styled.button`
@@ -55,6 +128,7 @@ const LoginButton = styled.button`
   border-radius: 12px;
   background-color: #222;
   color: #fff;
+  cursor: pointer;
 
   &:disabled {
     background-color: #e2e2ea;

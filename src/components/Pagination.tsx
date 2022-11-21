@@ -1,21 +1,40 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { VscChevronLeft, VscChevronRight } from 'react-icons/vsc';
+import { usePagination } from '../hooks';
 
-const Pagination = () => {
+interface PaginationProps {
+  currentPage?: number;
+  lastPage: number;
+  onChange(currentPage: number): void;
+  size?: number;
+}
+const Pagination = ({ lastPage, onChange, currentPage, size = 5 }: PaginationProps) => {
+  const { pages, setPrev, setNext, setPage } = usePagination({
+    currentPage,
+    size,
+    lastPage,
+    onChange,
+  });
+
   return (
     <Container>
-      <Button disabled>
+      <Button onClick={setPrev} disabled={!!currentPage && pages[0] <= 1}>
         <VscChevronLeft />
       </Button>
       <PageWrapper>
-        {[1, 2, 3, 4, 5].map((page) => (
-          <Page key={page} selected={page === 1} disabled={page === 1}>
+        {pages.map((page) => (
+          <Page
+            onClick={() => setPage(page)}
+            selected={page === currentPage}
+            disabled={page === currentPage}
+            key={page}
+          >
             {page}
           </Page>
         ))}
       </PageWrapper>
-      <Button disabled={false}>
+      <Button onClick={setNext} disabled={!!currentPage && pages[pages.length - 1] >= lastPage}>
         <VscChevronRight />
       </Button>
     </Container>
@@ -35,6 +54,8 @@ const Container = styled.div`
 `;
 
 const Button = styled.button`
+  cursor: pointer;
+
   &:disabled {
     color: #e2e2ea;
     cursor: default;
@@ -43,7 +64,8 @@ const Button = styled.button`
 
 const PageWrapper = styled.div`
   display: flex;
-  margin: 0 16px;
+  gap: 5px;
+  margin: 0 20px;
 `;
 
 type PageType = {
@@ -51,14 +73,12 @@ type PageType = {
 };
 
 const Page = styled.button<PageType>`
-  padding: 4px 6px;
+  padding: 4px 0px;
   background-color: ${({ selected }) => (selected ? '#000' : 'transparent')};
   color: ${({ selected }) => (selected ? '#fff' : '#000')};
   font-size: 20px;
-
-  & + & {
-    margin-left: 4px;
-  }
+  width: 40px;
+  cursor: pointer;
 
   &:disabled {
     cursor: default;

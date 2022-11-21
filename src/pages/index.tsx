@@ -2,18 +2,30 @@ import Link from 'next/link';
 import type { NextPage } from 'next';
 import React from 'react';
 import styled from 'styled-components';
+import { useQuery } from 'react-query';
+import { logOutUser, selectUserInfos, useAppDispatch, useAppSelector } from '../redux';
+import { Nav } from '../components/Nav';
+import { queryUserInfos } from '../api';
+import { toast } from 'react-toastify';
+import { UserInfos, UserInfosResponse } from '../types';
 
-const HomePage: NextPage = () => {
+type HomPageProps = Pick<UserInfos, 'NAME'>;
+
+const HomePage: NextPage<HomPageProps> = () => {
+  const { ID } = useAppSelector(selectUserInfos);
+  const dispatch = useAppDispatch();
+  const { data } = useQuery<UserInfosResponse>(['user', ID], () => queryUserInfos({ ID }), {
+    retry: 1,
+    enabled: !!ID,
+    onError: (err) => {
+      toast.error('로그인 상태를 확인해주세요.');
+      dispatch(logOutUser());
+    },
+  });
+
   return (
     <>
-      <Header>
-        <Link href='/'>
-          <Title>HAUS</Title>
-        </Link>
-        <Link href='/login'>
-          <p>login</p>
-        </Link>
-      </Header>
+      <Nav />
       <Container>
         <Link href='/pagination?page=1'>
           <StyledLink>pagination</StyledLink>
@@ -26,18 +38,8 @@ const HomePage: NextPage = () => {
   );
 };
 
+
 export default HomePage;
-
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-`;
-
-const Title = styled.a`
-  font-size: 48px;
-`;
 
 const Container = styled.div`
   display: flex;

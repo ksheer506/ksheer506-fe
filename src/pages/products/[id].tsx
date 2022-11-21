@@ -1,43 +1,113 @@
-import Link from 'next/link';
-import type { NextPage } from 'next';
-import React from 'react';
-import styled from 'styled-components';
+import type { GetStaticPaths, GetStaticProps, GetStaticPropsContext, NextPage } from 'next';
+import React, { useState } from 'react';
+import styled, { css } from 'styled-components';
 
-import products from '../../api/data/products.json';
+import { useRouter } from 'next/router';
+import { formatPrice } from '../../utilities';
+import { queryProductDetail } from '../../api/products/queryProductDetail';
+import { useQuery } from 'react-query';
+import { Nav, ProductDetailSkeleton } from '../../components';
+import { queryProductList } from '../../api/products/queryProductList';
+import { Product, ProductItemResponse, ProductListResponse } from '../../types';
+import productList from '../../api/data/products.json';
+import axios from 'axios';
+
+const queryStatus = (isIdle: boolean, isFetching: boolean, data: unknown) => {
+  if (!isIdle && !isFetching && !data) {
+    return 'notFound';
+  }
+  if ((isIdle || isFetching) && !data) {
+    return 'loading';
+  }
+  if (data) {
+    return 'done';
+  }
+};
 
 const ProductDetailPage: NextPage = () => {
-  const product = products[0];
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const { query } = useRouter();
+  const { id } = query;
+  const { data, isFetching, isIdle } = useQuery(
+    ['product', id],
+    () => queryProductDetail({ id: Number(id) }),
+    {
+      enabled: !!id,
+      retry: 1,
+      select: ({ product }) => product,
+    }
+  );
+  const { name, thumbnail, price } = data || {};
+  const status = queryStatus(isIdle, isFetching, name);
 
   return (
     <>
-      <Header>
-        <Link href='/'>
-          <Title>HAUS</Title>
-        </Link>
-        <Link href='/login'>
-          <p>login</p>
-        </Link>
-      </Header>
-      <Thumbnail src={product.thumbnail ? product.thumbnail : '/defaultThumbnail.jpg'} />
-      <ProductInfoWrapper>
-        <Name>{product.name}</Name>
-        <Price>{product.price}원</Price>
-      </ProductInfoWrapper>
+      <Nav />
+      {status === 'notFound' && <Error>존재하지 않는 상품입니다.</Error>}
+      {status === 'loading' && <ProductDetailSkeleton />}
+      {status === 'done' && (
+        <>
+          <Container isLoading={!imageLoaded}>
+            <Thumbnail
+              src={thumbnail ? thumbnail : '/defaultThumbnail.jpg'}
+              onLoad={() => setImageLoaded(true)}
+            />
+            <ProductInfoWrapper>
+              <Name>{name}</Name>
+              <Price>{`${formatPrice(price || 0)}원`}</Price>
+            </ProductInfoWrapper>
+          </Container>
+        </>
+      )}
     </>
   );
 };
 
+/* export const getStaticPaths: GetStaticPaths = async () => {
+  const allProducts: Product[] = [];
+
+  for (let page = 1; page < 5; page++) {
+    const {
+      data: { data },
+    } = await axios.get<ProductListResponse>(
+      `http://localhost:3004/products?_page=${page}&_limit=${100}`
+    );
+    const { totalCount, products } = data;
+
+    if (!products.length) break;
+    allProducts.push(...products);
+  }
+  const paths = allProducts.map(({ id }) => ({ params: { id } }));
+
+  return { paths, fallback: true };
+};
+
+export const getStaticProps: GetStaticProps<any, { id: string }> = async ({ params }) => {
+  const { id: productId } = params || {};
+  const {
+    data: { data },
+  } = await axios.get<ProductItemResponse>(`http://localhost:3004/products/${productId}`);
+  const product = productList.filter(({ id }) => id === productId)[0];
+
+  if (!product) {
+    return { props: { product: {} } };
+  }
+
+  return { props: { product } };
+}; */
+
 export default ProductDetailPage;
 
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-`;
+const Container = styled.div<{ isLoading: boolean }>`
+  width: 100%;
+  height: max-content;
+  overflow: hidden;
 
-const Title = styled.a`
-  font-size: 48px;
+  ${({ isLoading }) =>
+    isLoading &&
+    css`
+      height: 0;
+    `}
 `;
 
 const Thumbnail = styled.img`
@@ -45,17 +115,25 @@ const Thumbnail = styled.img`
   height: 420px;
 `;
 
-const ProductInfoWrapper = styled.div`
+const ProductInfoWrapper = styled.section`
   margin-top: 20px;
   padding: 0 20px;
 `;
 
-const Name = styled.div`
+const Name = styled.h1`
   font-size: 20px;
   font-weight: bold;
 `;
 
-const Price = styled.div`
+const Price = styled.p`
   font-size: 18px;
   margin-top: 8px;
+`;
+
+const Error = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: calc(100vh - 95px);
 `;
