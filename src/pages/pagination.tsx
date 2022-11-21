@@ -1,60 +1,73 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useRouter } from 'next/router';
-import type { NextPage } from 'next';
-import React, { useCallback, useMemo, useRef } from 'react';
+import type { GetServerSideProps, NextPage } from 'next';
+import React, { useCallback, useRef } from 'react';
 import styled from 'styled-components';
 
 import ProductList from '../components/ProductList';
 import Pagination from '../components/Pagination';
 import { Nav } from '../components/Nav';
 import { useQuery } from 'react-query';
-import { ErrorBoundary, FallbackProps, useErrorHandler } from 'react-error-boundary';
 import { queryProductList } from '../api/products/queryProductList';
 import { ProductItemSkeleton } from '../components';
+import axios from 'axios';
+import { ProductListResponse } from '../types';
 
-const PaginationPage: NextPage = () => {
+interface ServerSideProps {
+  currentPage: number;
+  totalCounts: number;
+}
+
+const isValidPage = (lastPage: number, page?: number | string | string[]) => {
+  return !!page && Number(page) <= lastPage;
+};
+
+const PaginationPage: NextPage<ServerSideProps> = ({ currentPage, totalCounts }) => {
   const size = useRef(10);
+  const lastPage = Math.ceil((totalCounts || 0) / size.current);
   const { query, push } = useRouter();
   const { page } = query;
-  const { data, isFetching, isError } = useQuery(
+  const { data, isFetching, isSuccess, isError } = useQuery(
     ['productList', page],
     () => queryProductList({ page: Number(page), size: size.current }),
     {
-      enabled: !!page,
+      enabled: isValidPage(lastPage, page),
       retry: 1,
     }
   );
-  const { products, totalCount } = data || {};
-
+  const { products } = data || {};
   const handlePagination = useCallback((current: number) => {
     push({ query: { ...query, page: current } });
   }, []);
 
-  const lastPage = Math.ceil((totalCount || 0) / size.current);
-  const productSkelton = useMemo(
-    () => new Array(size.current).fill(0).map((_, i) => <ProductItemSkeleton key={i} />),
-    []
-  );
+  const renderPaginationPage = () => {
+    if (isFetching) {
+      const productSkelton = new Array(size.current)
+        .fill(0)
+        .map((_, i) => <ProductItemSkeleton key={i} />);
+
+      return <SkeltonContainer>{productSkelton}</SkeltonContainer>;
+    }
+
+    if (isError || !isValidPage(lastPage, page)) {
+      return <PaginationError />;
+    }
+
+    if (isSuccess && products) {
+      return <ProductList products={products} />;
+    }
+  };
 
   return (
     <>
       <Nav />
-
       <Main>
-        {/* <ErrorBoundary FallbackComponent={PaginationError}> */}
-        {isError && <PaginationError />}
-        {isFetching && <SkeltonContainer>{productSkelton}</SkeltonContainer>}
-        {products && (
-          <>
-            <ProductList products={products} />
-            <Pagination
-              currentPage={Number(page)}
-              lastPage={lastPage}
-              onChange={handlePagination}
-            />
-          </>
-        )}
-        {/* </ErrorBoundary> */}
+        {renderPaginationPage()}
+        <Pagination
+          currentPage={Number(currentPage)}
+          lastPage={lastPage}
+          onChange={handlePagination}
+        />
       </Main>
     </>
   );
@@ -62,6 +75,20 @@ const PaginationPage: NextPage = () => {
 
 const PaginationError = () => {
   return <ErrorContainer>존재하지 않는 페이지입니다.</ErrorContainer>;
+};
+
+export const getServerSideProps: GetServerSideProps<ServerSideProps, { page: string }> = async ({
+  query,
+}) => {
+  const { page } = query || {};
+  const {
+    data: { data },
+  } = await axios.get<ProductListResponse>(
+    `http://localhost:3004/products?_page=${page}&_limit=${100}`
+  );
+  const { totalCount } = data;
+
+  return { props: { currentPage: Number(page), totalCounts: totalCount } };
 };
 
 export default PaginationPage;
