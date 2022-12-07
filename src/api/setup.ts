@@ -7,12 +7,7 @@ import { handlers } from './handlers';
 
 const setupMSW = () => {
   if (typeof window === 'undefined') {
-    const server = setupServer(...handlers);
-    server.listen({
-      onUnhandledRequest(request, print) {
-        console.log(request);
-      },
-    });
+    /* const server = setupServer(...handlers); */
     /* server.printHandlers(); */
 
     return;

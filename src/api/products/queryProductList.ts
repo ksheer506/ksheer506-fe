@@ -1,12 +1,13 @@
+import { ServerResponse } from '../../pages/products/[id]';
 import { ProductListPayload, ProductListResponse } from '../../types';
 import { axiosInstance } from '../../utilities';
 
 export const queryProductList = async ({ page, size = 10 }: ProductListPayload) => {
-  const {
-    data: { data },
-  } = await axiosInstance.get<ProductListResponse>(
-    `https://api.backend/products?page=${page}&size=${size}`
-  );
+  const { data } = await axiosInstance.get<ServerResponse[]>(`https://koreanjson.com/posts`);
+  const start = size * page - size;
+  const end = size * page;
 
-  return { ...data };
+  const paginated = data.slice(start, end);
+
+  return { paginated };
 };

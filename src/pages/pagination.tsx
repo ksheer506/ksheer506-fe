@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useRouter } from 'next/router';
 import type { GetServerSideProps, NextPage } from 'next';
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 
 import ProductList from '../components/ProductList';
@@ -12,6 +12,7 @@ import { queryProductList } from '../api/products/queryProductList';
 import { ProductItemSkeleton } from '../components';
 import axios from 'axios';
 import { ProductListResponse } from '../types';
+import { ServerResponse } from './products/[id]';
 
 interface ServerSideProps {
   currentPage: number;
@@ -22,9 +23,9 @@ const isValidPage = (lastPage: number, page?: number | string | string[]) => {
   return !!page && Number(page) <= lastPage;
 };
 
-const PaginationPage: NextPage<ServerSideProps> = ({ currentPage, totalCounts }) => {
+const PaginationPage: NextPage<ServerSideProps> = ({ currentPage = 1, totalCounts = 200 }) => {
   const size = useRef(10);
-  const lastPage = Math.ceil((totalCounts || 0) / size.current);
+  const lastPage = Math.ceil(totalCounts / size.current);
   const { query, push } = useRouter();
   const { page } = query;
   const { data, isFetching, isSuccess, isError } = useQuery(
@@ -35,7 +36,9 @@ const PaginationPage: NextPage<ServerSideProps> = ({ currentPage, totalCounts })
       retry: 1,
     }
   );
-  const { products } = data || {};
+
+  const { paginated } = data || {};
+
   const handlePagination = useCallback((current: number) => {
     push({ query: { ...query, page: current } });
   }, []);
@@ -53,21 +56,29 @@ const PaginationPage: NextPage<ServerSideProps> = ({ currentPage, totalCounts })
       return <PaginationError />;
     }
 
-    if (isSuccess && products) {
-      return <ProductList products={products} />;
+    if (isSuccess && paginated) {
+      return <ProductList products={paginated} />;
     }
   };
+
+  /* useEffect(() => {
+    (async () => {
+      const {
+        data: { data },
+      } = await axios.get<ProductListResponse>(
+        `https://api.backend/products?page=${1}&size=${100}`
+      );
+
+      console.log(data);
+    })();
+  }); */
 
   return (
     <>
       <Nav />
       <Main>
         {renderPaginationPage()}
-        <Pagination
-          currentPage={Number(currentPage)}
-          lastPage={lastPage}
-          onChange={handlePagination}
-        />
+        <Pagination currentPage={currentPage} lastPage={lastPage} onChange={handlePagination} />
       </Main>
     </>
   );
@@ -81,14 +92,10 @@ export const getServerSideProps: GetServerSideProps<ServerSideProps, { page: str
   query,
 }) => {
   const { page } = query || {};
-  const {
-    data: { data },
-  } = await axios.get<ProductListResponse>(
-    `http://localhost:3004/products?_page=${page}&_limit=${100}`
-  );
-  const { totalCount } = data;
+  const { data } = await axios.get<ServerResponse[]>(`https://koreanjson.com/posts`);
+  const L = data.length > 100 ? 150 : data.length;
 
-  return { props: { currentPage: Number(page), totalCounts: totalCount } };
+  return { props: { currentPage: Number(page), totalCounts: L } };
 };
 
 export default PaginationPage;

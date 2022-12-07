@@ -1,10 +1,11 @@
 import styled from 'styled-components';
+import { ServerResponse } from '../pages/products/[id]';
 
 import { Product } from '../types/product';
 import ProductItem from './ProductItem';
 
 type ProductListProps = {
-  products: Product[];
+  products: ServerResponse[];
 };
 
 const ProductList = ({ products }: ProductListProps) => (

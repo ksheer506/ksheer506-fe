@@ -1,4 +1,10 @@
-import type { GetStaticPaths, GetStaticProps, GetStaticPropsContext, NextPage } from 'next';
+import type {
+  GetStaticPaths,
+  GetStaticProps,
+  GetStaticPropsContext,
+  InferGetStaticPropsType,
+  NextPage,
+} from 'next';
 import React, { useState } from 'react';
 import styled, { css } from 'styled-components';
 
@@ -24,10 +30,10 @@ const queryStatus = (isIdle: boolean, isFetching: boolean, data: unknown) => {
   }
 };
 
-const ProductDetailPage: NextPage = () => {
+const ProductDetailPage = ({ id, title }: InferGetStaticPropsType<typeof getStaticProps>) => {
   const [imageLoaded, setImageLoaded] = useState(false);
-  const { query } = useRouter();
-  const { id } = query;
+  const { query, isFallback } = useRouter();
+  /* const { id } = query;
   const { data, isFetching, isIdle } = useQuery(
     ['product', id],
     () => queryProductDetail({ id: Number(id) }),
@@ -38,81 +44,92 @@ const ProductDetailPage: NextPage = () => {
     }
   );
   const { name, thumbnail, price } = data || {};
-  const status = queryStatus(isIdle, isFetching, name);
+  const status = queryStatus(isIdle, isFetching, name); */
+
+  if (isFallback) {
+    return <Loading>페이지를 생성하는 중입니다.</Loading>;
+  }
 
   return (
     <>
       <Nav />
-      {status === 'notFound' && <Error>존재하지 않는 상품입니다.</Error>}
-      {status === 'loading' && <ProductDetailSkeleton />}
-      {status === 'done' && (
-        <>
-          <Container isLoading={!imageLoaded}>
-            <Thumbnail
-              src={thumbnail ? thumbnail : '/defaultThumbnail.jpg'}
-              onLoad={() => setImageLoaded(true)}
-            />
-            <ProductInfoWrapper>
-              <Name>{name}</Name>
-              <Price>{`${formatPrice(price || 0)}원`}</Price>
-            </ProductInfoWrapper>
-          </Container>
-        </>
-      )}
+
+      <>
+        <Container isLoading={!imageLoaded}>
+          <Thumbnail
+            src={
+              'https://images.pexels.com/photos/2014422/pexels-photo-2014422.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940'
+            }
+            onLoad={() => setImageLoaded(true)}
+          />
+          <ProductInfoWrapper>
+            <Name>{title}</Name>
+            <Price>{id}</Price>
+          </ProductInfoWrapper>
+        </Container>
+      </>
     </>
   );
 };
 
-/* export const getStaticPaths: GetStaticPaths = async () => {
-  const allProducts: Product[] = [];
+interface StaticProps {
+  props: ServerResponse;
+}
 
-  for (let page = 1; page < 5; page++) {
-    const {
-      data: { data },
-    } = await axios.get<ProductListResponse>(
-      `http://localhost:3004/products?_page=${page}&_limit=${100}`
-    );
-    const { totalCount, products } = data;
+export interface ServerResponse {
+  id: string;
+  title: string;
+  content: string;
+  UserId: number;
+}
 
-    if (!products.length) break;
-    allProducts.push(...products);
-  }
-  const paths = allProducts.map(({ id }) => ({ params: { id } }));
+export const getStaticPaths: GetStaticPaths = async () => {
+  const { data } = await axios.get<ServerResponse[]>(`https://koreanjson.com/posts`);
+  const paginagted = data.slice(0, 30);
 
-  return { paths, fallback: true };
+  const paths = paginagted.map(({ id }) => ({ params: { id: `${id}` } }));
+
+  return { paths, fallback: 'blocking' };
 };
 
-export const getStaticProps: GetStaticProps<any, { id: string }> = async ({ params }) => {
+export const getStaticProps: GetStaticProps<ServerResponse, { id: string }> = async ({
+  params,
+}) => {
   const { id: productId } = params || {};
-  const {
-    data: { data },
-  } = await axios.get<ProductItemResponse>(`http://localhost:3004/products/${productId}`);
-  const product = productList.filter(({ id }) => id === productId)[0];
+  const { data } = await axios.get<ServerResponse>(`https://koreanjson.com/posts/${productId}`);
 
-  if (!product) {
-    return { props: { product: {} } };
-  }
-
-  return { props: { product } };
-}; */
+  return { props: { ...data } };
+};
 
 export default ProductDetailPage;
+
+const Loading = styled.h1`
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: center;
+  align-items: center;
+  height: 500px;
+
+  font-size: 27px;
+  font-weight: bold;
+  color: grey;
+`;
 
 const Container = styled.div<{ isLoading: boolean }>`
   width: 100%;
   height: max-content;
   overflow: hidden;
 
-  ${({ isLoading }) =>
+  /* ${({ isLoading }) =>
     isLoading &&
     css`
       height: 0;
-    `}
+    `} */
 `;
 
 const Thumbnail = styled.img`
   width: 100%;
-  height: 420px;
+  height: 300px;
 `;
 
 const ProductInfoWrapper = styled.section`
