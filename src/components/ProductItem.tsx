@@ -3,16 +3,17 @@ import axios from 'axios';
 import Link from 'next/link';
 import { memo, useState } from 'react';
 import styled, { css } from 'styled-components';
+import { ServerResponse } from '../pages/products/[id]';
 
 import { Product } from '../types/product';
 import { formatPrice } from '../utilities';
 import { ProductItemSkeleton } from './ProductItemSkeleton';
 
 type ProductItemProps = {
-  product: Product;
+  product: ServerResponse;
 };
 
-const ProductItem = memo(({ product: { name, thumbnail, price, id } }: ProductItemProps) => {
+const ProductItem = memo(({ product: { id, title, UserId } }: ProductItemProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   return (
@@ -23,17 +24,17 @@ const ProductItem = memo(({ product: { name, thumbnail, price, id } }: ProductIt
           <a>
             <Thumbnail
               onLoad={() => setImageLoaded(true)}
-              src={thumbnail ? thumbnail : '/defaultThumbnail.jpg'}
+              src={'/defaultThumbnail.jpg'}
             />
           </a>
         </Link>
 
         <Link href={`/products/${id}`}>
           <a>
-            <Name>{name}</Name>
+            <Name>{title}</Name>
           </a>
         </Link>
-        <Price>{formatPrice(price)}원</Price>
+        <Price>{`${UserId}번`}</Price>
       </Container>
     </List>
   );
